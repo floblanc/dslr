@@ -34,7 +34,7 @@ class Describe():
 				maxi = tab[length - 1]
 				dictio = {data.columns[feature] : [length, mean, std, mini, first_quart, half, last_quart, maxi]}
 				tmp[data.columns[feature]] = [length, mean, std, mini, first_quart, half, last_quart, maxi]
-			result = pd.DataFrame(tmp, index={"Count", "Mean", "Std", "Min", "25%", "50%", "75%", "Max"})
+			result = pd.DataFrame(tmp, index=["Count", "Mean", "Std", "Min", "25%", "50%", "75%", "Max"])
 			return result
 		except Exception:
 			print("Describe failed")
