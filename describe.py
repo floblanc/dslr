@@ -8,24 +8,33 @@ class Describe():
 	def describe(self,data):
 		try :
 			tmp = {}
-			for feature in range (6, len(data.columns) - 1):
-				print(feature)
-				sorted(data[data.columns[feature]])
-				length = len(data[data.columns[feature]])
-				rest = length % 4
-				count = sum(data[feature])
-				mean = count / length
-				std = sum((data[feature] - mean)**2) / length
-				mini = data[data.columns[feature]][0]
+			for feature in range (6, len(data.columns)):
+				tab = data[data.columns[feature]].to_numpy()
+				tab = np.sort(tab)
+				length = 0
+				total = 0
+				for i in tab:
+					if not np.isnan(i):
+						total += i
+						length += 1
+					else:
+						break
+				mean = total / length
+				std = 0
+				for i in range(length):
+					std += (tab[i] - mean)**2
+				std = (std / length)**0.5
+				mini = tab[0]
 				first_quart_pos = math.ceil((length + 3) / 4)
-				first_quart = data[data.columns[feature]][first_quart_pos] if first_quart_pos % 4 == 0 else (data[data.columns[feature]][(first_quart_pos // 1)] * rest + data[data.columns[feature]][(first_quart_pos // 1) + 1] * (4 - rest)) / 4
+				first_quart = tab[first_quart_pos] if first_quart_pos % 1 == 0 else (tab[(first_quart_pos // 1)] * ((first_quart_pos % 1) / 0.25) + tab[(first_quart_pos // 1) + 1] * (4 - ((first_quart_pos % 1) / 0.25))) / 4
 				half_pos = (length + 1) / 2
-				half = data[data.columns[feature]][half_pos] if half_pos % 2 == 0 else (data[data.columns[feature]][half_pos // 1] + data[data.columns[feature]][(half_pos // 1) + 1]) / 2
+				half = tab[int(half_pos)] if half_pos % 1 == 0 else ((tab[int(half_pos // 1)] + tab[(int(half_pos // 1) + 1)]) / 2)
 				last_quart_pos = math.ceil(((length * 3) + 1) / 4)
-				last_quart = data[data.columns[feature]][last_quart_pos] if last_quart_pos % 4 == 0 else (data[data.columns[feature]][last_quart_pos // 1] * rest + data[data.columns[feature]][(last_quart_pos // 1) + 1] * (4 - rest)) / 4
-				maxi = data[data.columns[feature]][length - 1]
-				tmp.append({data.columns[feature] : [count, mean, std, mini, first_quart, half, last_quart, maxi]})
-			result = pd.dataFrame(data=tmp,index={"Count", "Mean", "Std", "Min", "25%", "50%", "75%", "Max"})
+				last_quart = tab[last_quart_pos] if last_quart_pos % 1 == 0 else (tab[last_quart_pos // 1] * ((last_quart_pos % 1) / 0.25) + tab[(last_quart_pos // 1) + 1] * (4 - ((first_quart_pos % 1) / 0.25))) / 4
+				maxi = tab[length - 1]
+				dictio = {data.columns[feature] : [length, mean, std, mini, first_quart, half, last_quart, maxi]}
+				tmp[data.columns[feature]] = [length, mean, std, mini, first_quart, half, last_quart, maxi]
+			result = pd.DataFrame(tmp, index={"Count", "Mean", "Std", "Min", "25%", "50%", "75%", "Max"})
 			return result
 		except Exception:
 			print("Describe failed")
@@ -41,6 +50,6 @@ if (len(sys.argv) < 3):
 	data = loader.load(path)
 	describer = Describe()
 	result = describer.describe(data)
-	print(result)
+	print(result.to_string())
 else:
 	print("There is too much arguments.")
