@@ -40,16 +40,17 @@ class Describe():
 			print("Describe failed")
 			exit()
 
-file = "dataset_train.csv"
-result = 0
-if (len(sys.argv) < 3):
-	if (len(sys.argv) == 2):
-		file = sys.argv[1]
-	loader = FileLoader()
-	path = sys.path[0]+ '/' + file
-	data = loader.load(path)
-	describer = Describe()
-	result = describer.describe(data)
-	print(result.to_string())
-else:
-	print("There is too much arguments.")
+if (__name__ == '__main__'):
+	file = "datasets/dataset_train.csv"
+	result = 0
+	if (len(sys.argv) < 3):
+		if (len(sys.argv) == 2):
+			file = sys.argv[1]
+		loader = FileLoader()
+		path = sys.path[0]+ '/' + file
+		data = loader.load(path)
+		describer = Describe()
+		result = describer.describe(data)
+		print(result.to_string())
+	else:
+		print("There is too much arguments.")
