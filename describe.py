@@ -5,7 +5,16 @@ import math
 import sys
 
 class Describe():
-	def describe(self,data):
+	def findX(self, p, n, c):
+		return (p*(n + 1 - 2*c) + c)
+
+	def findValue(self, values, x):
+		index = x // 1
+		upperIndex = index + 1
+		print("val")
+		return (values[index] + (x % 1) * (values[upperIndex] - values[index]))
+
+	def describe(self, data):
 		try :
 			tmp = {}
 			for feature in range (6, len(data.columns)):
@@ -26,7 +35,12 @@ class Describe():
 				std = (std / length)**0.5
 				mini = tab[0]
 				first_quart_pos = math.ceil((length + 3) / 4)
-				first_quart = tab[first_quart_pos] if first_quart_pos % 1 == 0 else (tab[(first_quart_pos // 1)] * ((first_quart_pos % 1) / 0.25) + tab[(first_quart_pos // 1) + 1] * (4 - ((first_quart_pos % 1) / 0.25))) / 4
+				print("25%")
+				x = self.findX(0.25, length, 1)
+				print(x)
+				print(tab.to_string())
+				first_quart = self.findValue(tab, x)
+				print(first_quart)
 				half_pos = (length + 1) / 2
 				half = tab[int(half_pos)] if half_pos % 1 == 0 else ((tab[int(half_pos // 1)] + tab[(int(half_pos // 1) + 1)]) / 2)
 				last_quart_pos = math.ceil(((length * 3) + 1) / 4)
@@ -50,7 +64,10 @@ if (__name__ == '__main__'):
 		path = sys.path[0]+ '/' + file
 		data = loader.load(path)
 		describer = Describe()
+		data = data.dropna()
 		result = describer.describe(data)
 		print(result.to_string())
+		print(pd.DataFrame.describe(data).to_string())
 	else:
 		print("There is too much arguments.")
+# https://en.wikipedia.org/wiki/Percentile

@@ -21,7 +21,8 @@ class Scatter_Plot():
 		except Exception as e:
 			print("Histogram failed : {}".format(e))
 			exit()
-
+#Note matieres combos : Asto-Herbo | Astro-AncRunes | Astro-Charm | Herbo-DADA | Herbo-AncRunes | DADA-AncRunes | DADA-Charm | Divination-Charm
+# donc : Astronomy, Herbology, AncRunes, Charm, DADA
 if (__name__ == '__main__'):
 	file = "datasets/dataset_train.csv"
 	result = 0
