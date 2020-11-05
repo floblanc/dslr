@@ -1,4 +1,5 @@
 import argparse
+import csv
 import numpy as np
 from loader import FileLoader
 from logreg_train import LogisticRegression
@@ -19,17 +20,21 @@ if (__name__ == '__main__'):
 	print(data)
 	trainer = LogisticRegression(data, 100, 0.1)
 	trainer.standardized_val.T[1:] = (data.T - np.array([data.mean()]).T) / np.array([data.std()]).T
-	houses = []
-	houses.append({"Ravenclaw" : estimatePrice(trainer, Ravenclaw, trainer.standardized_val)})
-	houses.append({"Slytherin" : estimatePrice(trainer, Slytherin, trainer.standardized_val)})
-	houses.append({"Gryffindor" : estimatePrice(trainer, Gryffindor, trainer.standardized_val)})
-	houses.append({"Hufflepuff" : estimatePrice(trainer, Hufflepuff, trainer.standardized_val)})
-	newCSV = []
+	houses = {}
+	houses["Ravenclaw"] = estimatePrice(trainer, Ravenclaw, trainer.standardized_val)[0]
+	houses["Slytherin"] = estimatePrice(trainer, Slytherin, trainer.standardized_val)[0]
+	houses["Gryffindor"] =  estimatePrice(trainer, Gryffindor, trainer.standardized_val)[0]
+	houses["Hufflepuff"] =  estimatePrice(trainer, Hufflepuff, trainer.standardized_val)[0]
+	newCSV = [["Index", "Hogwarts House"]]
 	for i in range(data.shape[0]):
 		best = houses["Hufflepuff"][i]
 		best_house = "Hufflepuff"
-		for house in range(len(houses) - 1):
+		for house in houses.keys():
 			if (houses[house][i] > best):
 				best = houses[house][i]
-				best_house = houses.keys[i]
-		newCSV.append(best,house)
+				best_house = house
+		newCSV.append([i, best_house])
+	print(newCSV)
+	with open("houses.csv", "w", newline="") as file:
+		writer = csv.writer(file)
+		writer.writerows(newCSV)
