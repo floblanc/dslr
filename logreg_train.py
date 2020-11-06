@@ -20,8 +20,13 @@ class LogisticRegression():
 		return 1 / (1 + np.exp(-z))
 
 	def predictions(self, value):
+		# print(self.theta)
+		# print(value.shape)
+		# print(np.dot(self.theta, value.T).T)
+		# print(value, "\n", self.theta)
+		# print(np.dot(value, self.theta.T))
 		# print("value in prediction : {} and theta {}\n".format(value.shape, self.theta.shape))
-		return self.sigmoid(np.dot(self.theta, value.T))
+		return self.sigmoid(np.array(np.dot(value, self.theta.T), dtype=np.float32))
 
 	def cost(self, y):
 		predictions = self.predictions(self.standardized_val)
@@ -30,23 +35,20 @@ class LogisticRegression():
 		error = -y * np.log(predictions) - (1 - y) * np.log(1 - predictions)
 		return sum(error) / self.m
 
-	def cost_gradient(self, col_one, col_two, y):
-		print(np.array([self.standardized_val.T[col_one].T]))
-		x = np.append(np.array([np.ones(self.m)]), np.array([self.standardized_val.T[col_one].T]), np.array([self.standardized_val.T[col_two].T]), axis=0)
-		print("------------------------")
-		print(x)
-		predictions = self.predictions(self.standardized_val)
+	def cost_gradient(self, x, y):
+		predictions = self.predictions(x)
+		# print(predictions)
 		# print("self.standardized_val.T : {}, (predictions : {} - y : {}).T\n".format(self.standardized_val.shape, predictions.shape, y.shape))
-		return np.dot(self.standardized_val.T, (predictions.T - y)) / self.m
+		return np.dot(x.T, (predictions.T - y)) / self.m
 
 	def standardize(self, data):
-		print(data.T[1:])
-		print(data.T[1:].T.mean())
+		# print(data.T[1:])
+		# print(data.T[1:].T.mean())
 		# print(np.array([data.T[1:].T.mean()]).T)
-		print(data.T[1:].T.std())
+		# print(data.T[1:].T.std())
 		# print(self.standardized_val.T[1:].shape)
 		self.standardized_val.T[1:] = np.array((data.T[1:] - np.array([data.T[1:].T.mean()]).T) / np.array([data.T[1:].T.std()]).T)
-		print(self.standardized_val.T[1:])
+		# print(self.standardized_val.T[1:])
 
 
 	def destandardize(self, data, X):
@@ -62,13 +64,22 @@ class LogisticRegression():
 		for house_index in range(len(houses)):
 			y = data["Hogwarts House"] == houses[house_index]
 			y = np.array([y.astype(np.int)]).T
-			print(self.standardized_val.shape)
+			# print(self.standardized_val.shape)
 			for first_col in range(self.standardized_val.shape[1] - 1):
 				self.theta = np.zeros((1, 3))
 				for second_col in range(first_col + 1, self.standardized_val.shape[1]):
-					for _ in range(self.iterations):
+					x = np.array([np.ones(self.m), self.standardized_val.T[first_col].T, self.standardized_val.T[second_col].T]).T
+					print(x)
+					for w in range(self.iterations):
 				# print(self.cost_gradient(y).shape)
-						self.theta = self.theta - (1 / self.m) * self.learningRate * self.cost_gradient(first_col, second_col, y).T
+						print(w)
+						self.theta = self.theta - (1 / self.m) * self.learningRate * self.cost_gradient(x, y).T
+					check = self.predictions(x)
+					check[check >= 0.5] = 1
+					check[check != 1] = 0
+					diff = np.subtract(check, y)
+					print((len(y) - len(diff)) / len(y))
+						# print(self.theta)
 				# self.cost_history.append(self.cost(y.T))
 			# print(self.cost_history)
 			# print(self.theta)
