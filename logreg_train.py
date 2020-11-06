@@ -23,10 +23,10 @@ class LogisticRegression():
 		# print(self.theta)
 		# print(value.shape)
 		# print(np.dot(self.theta, value.T).T)
-		# print(value, "\n", self.theta)
+		# print(value.shape, "\n", self.theta.shape)
 		# print(np.dot(value, self.theta.T))
 		# print("value in prediction : {} and theta {}\n".format(value.shape, self.theta.shape))
-		return self.sigmoid(np.array(np.dot(value, self.theta.T), dtype=np.float32))
+		return self.sigmoid(np.dot(value, self.theta.T))
 
 	def cost(self, y):
 		predictions = self.predictions(self.standardized_val)
@@ -37,9 +37,12 @@ class LogisticRegression():
 
 	def cost_gradient(self, x, y):
 		predictions = self.predictions(x)
+		# print(x.shape)
+		# print(y.shape)
+		# print(predictions.shape)
 		# print(predictions)
 		# print("self.standardized_val.T : {}, (predictions : {} - y : {}).T\n".format(self.standardized_val.shape, predictions.shape, y.shape))
-		return np.dot(x.T, (predictions.T - y)) / self.m
+		return np.dot(x.T, (predictions - y)) / self.m
 
 	def standardize(self, data):
 		# print(data.T[1:])
@@ -68,15 +71,16 @@ class LogisticRegression():
 			for first_col in range(self.standardized_val.shape[1] - 1):
 				self.theta = np.zeros((1, 3))
 				for second_col in range(first_col + 1, self.standardized_val.shape[1]):
-					x = np.array([np.ones(self.m), self.standardized_val.T[first_col].T, self.standardized_val.T[second_col].T]).T
-					print(x)
-					for w in range(self.iterations):
+					x = np.array([self.standardized_val.T[first_col], self.standardized_val.T[second_col]], dtype=np.float64).T
+					x = np.insert(x, 0, 1, axis=1)
+					for _ in range(self.iterations):
 				# print(self.cost_gradient(y).shape)
-						print(w)
 						self.theta = self.theta - (1 / self.m) * self.learningRate * self.cost_gradient(x, y).T
 					check = self.predictions(x)
+					# print(check.shape)
 					check[check >= 0.5] = 1
 					check[check != 1] = 0
+					# print(check)
 					diff = np.subtract(check, y)
 					print((len(y) - len(diff)) / len(y))
 						# print(self.theta)
