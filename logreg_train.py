@@ -67,22 +67,38 @@ class LogisticRegression():
 		for house_index in range(len(houses)):
 			y = data["Hogwarts House"] == houses[house_index]
 			y = np.array([y.astype(np.int)]).T
+			print(y)
 			# print(self.standardized_val.shape)
+			print("\n\t\t\t\033[33m", houses[house_index], "\033[0m\n")
 			for first_col in range(self.standardized_val.shape[1] - 1):
-				self.theta = np.zeros((1, 3))
 				for second_col in range(first_col + 1, self.standardized_val.shape[1]):
+					self.theta = np.zeros((1, 3))
 					x = np.array([self.standardized_val.T[first_col], self.standardized_val.T[second_col]], dtype=np.float64).T
 					x = np.insert(x, 0, 1, axis=1)
 					for _ in range(self.iterations):
 				# print(self.cost_gradient(y).shape)
 						self.theta = self.theta - (1 / self.m) * self.learningRate * self.cost_gradient(x, y).T
 					check = self.predictions(x)
-					# print(check.shape)
+					# print(print(len(y)))
 					check[check >= 0.5] = 1
 					check[check != 1] = 0
-					# print(check)
-					diff = np.subtract(check, y)
-					print((len(y) - len(diff)) / len(y))
+					# print(check.shape)
+					# print(y.shape)
+					diff = check == y
+					diff[diff == True] = 1
+					diff[diff == False] = 0
+					# print(diff)
+					ac = (len(y) - np.count_nonzero(diff==0)) / len(y) * 100
+					# print(len(y))
+					# print(len(diff))
+					# print(ac)
+					# print(data.columns[first_col + 1], " vs ", data.columns[second_col + 1])
+					vs = data.columns[first_col + 1] + "  vs  " + data.columns[second_col + 1]
+					if ac >= 90:
+						print(f"{vs:64}\033[36mAccuracy: {ac}\033[0m\t\033[32mGOOD\033[0m")
+					else: 
+						print(f"{vs:64}\033[36mAccuracy: {ac}\033[0m\t\033[31mBAD\033[0m")
+			# exit()
 						# print(self.theta)
 				# self.cost_history.append(self.cost(y.T))
 			# print(self.cost_history)
@@ -90,7 +106,7 @@ class LogisticRegression():
 			# print(self.standardized_val[0])
 			print(houses[house_index])
 			# print(self.theta)
-			print(self.predictions(self.standardized_val))
+			# print(self.predictions(self.standardized_val))
 			all_thetas.append(self.theta)
 		newFile = open("theta.py", "w+")
 		print(all_thetas)
