@@ -9,11 +9,11 @@ from loader import FileLoader
 class LogisticRegression():
 
 	def __init__(self, data, iterations, learningRate):
-		self.theta = np.zeros((1, 14))
+		self.theta = np.zeros((1, 3))
 		self.learningRate = learningRate if learningRate is not None else 0.1
 		self.m = data.shape[0]
 		self.iterations = iterations if iterations is not None else 100
-		self.standardized_val = np.ones((self.m, self.theta.shape[1]))
+		self.standardized_val = np.array((data.T[1:] - np.array([data.T[1:].T.mean()]).T) / np.array([data.T[1:].T.std()]).T).T
 		self.cost_history = []
 
 	def sigmoid(self, z):
@@ -30,7 +30,11 @@ class LogisticRegression():
 		error = -y * np.log(predictions) - (1 - y) * np.log(1 - predictions)
 		return sum(error) / self.m
 
-	def cost_gradient(self, y):
+	def cost_gradient(self, col_one, col_two, y):
+		print(np.array([self.standardized_val.T[col_one].T]))
+		x = np.append(np.array([np.ones(self.m)]), np.array([self.standardized_val.T[col_one].T]), np.array([self.standardized_val.T[col_two].T]), axis=0)
+		print("------------------------")
+		print(x)
 		predictions = self.predictions(self.standardized_val)
 		# print("self.standardized_val.T : {}, (predictions : {} - y : {}).T\n".format(self.standardized_val.shape, predictions.shape, y.shape))
 		return np.dot(self.standardized_val.T, (predictions.T - y)) / self.m
@@ -41,7 +45,7 @@ class LogisticRegression():
 		# print(np.array([data.T[1:].T.mean()]).T)
 		print(data.T[1:].T.std())
 		# print(self.standardized_val.T[1:].shape)
-		self.standardized_val.T[1:] = (data.T[1:] - np.array([data.T[1:].T.mean()]).T) / np.array([data.T[1:].T.std()]).T
+		self.standardized_val.T[1:] = np.array((data.T[1:] - np.array([data.T[1:].T.mean()]).T) / np.array([data.T[1:].T.std()]).T)
 		print(self.standardized_val.T[1:])
 
 
@@ -52,21 +56,24 @@ class LogisticRegression():
 
 	def training(self, data):
 		all_thetas = []
-		self.standardize(data)
+		# self.standardize(data)
 		print("Training with {} iterations".format(self.iterations))
 		houses = pd.Series(data["Hogwarts House"]).unique()
-		for i in range(len(houses)):
-			y = data["Hogwarts House"] == houses[i]
+		for house_index in range(len(houses)):
+			y = data["Hogwarts House"] == houses[house_index]
 			y = np.array([y.astype(np.int)]).T
-			self.theta = np.zeros((1, 14))
-			for _ in range(self.iterations):
+			print(self.standardized_val.shape)
+			for first_col in range(self.standardized_val.shape[1] - 1):
+				self.theta = np.zeros((1, 3))
+				for second_col in range(first_col + 1, self.standardized_val.shape[1]):
+					for _ in range(self.iterations):
 				# print(self.cost_gradient(y).shape)
-				self.theta = self.theta - (1 / self.m) * self.learningRate * self.cost_gradient(y).T
+						self.theta = self.theta - (1 / self.m) * self.learningRate * self.cost_gradient(first_col, second_col, y).T
 				# self.cost_history.append(self.cost(y.T))
 			# print(self.cost_history)
 			# print(self.theta)
 			# print(self.standardized_val[0])
-			print(houses[i])
+			print(houses[house_index])
 			# print(self.theta)
 			print(self.predictions(self.standardized_val))
 			all_thetas.append(self.theta)
