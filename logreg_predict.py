@@ -4,6 +4,7 @@ import numpy as np
 from loader import FileLoader
 from logreg_train import LogisticRegression
 from theta import Ravenclaw, Slytherin, Gryffindor, Hufflepuff
+from tools import write_CSV
 
 
 def estimatePrice(trainer, thetha, value):
@@ -35,6 +36,4 @@ if (__name__ == '__main__'):
 				best_house = house
 		newCSV.append([i, best_house])
 	print(newCSV)
-	with open("houses.csv", "w", newline="") as file:
-		writer = csv.writer(file)
-		writer.writerows(newCSV)
+	write_CSV("houses.csv", newCSV)

@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 from loader import FileLoader
+from tools import write_CSV
 
 
 class LogisticRegression():
@@ -14,61 +15,52 @@ class LogisticRegression():
 		self.m = data.shape[0]
 		self.iterations = args.iterations
 		self.standardized_val = np.array((data.T[1:] - np.array([data.T[1:].T.mean()]).T) / np.array([data.T[1:].T.std()]).T).T
-		self.cost_history = []
+		self.dict = []
 
 	def sigmoid(self, z):
 		return 1 / (1 + np.exp(-z))
 
 	def predictions(self, value):
-		# print(self.theta)
-		# print(value.shape)
-		# print(np.dot(self.theta, value.T).T)
-		# print(value.shape, "\n", self.theta.shape)
-		# print(np.dot(value, self.theta.T))
-		# print("value in prediction : {} and theta {}\n".format(value.shape, self.theta.shape))
 		return self.sigmoid(np.dot(value, self.theta.T))
 
 	def cost(self, y):
 		predictions = self.predictions(self.standardized_val)
-		# print("COST self.standardized_val.T : {}, (predictions : {} - y : {}).T\n".format(self.standardized_val.shape, predictions.shape, y.shape))
 		predictions[predictions == 1] = 0.999  # log(1)=0 causes error in division
 		error = -y * np.log(predictions) - (1 - y) * np.log(1 - predictions)
 		return sum(error) / self.m
 
 	def cost_gradient(self, x, y):
 		predictions = self.predictions(x)
-		# print(x.shape)
-		# print(y.shape)
-		# print(predictions.shape)
-		# print(predictions)
-		# print("self.standardized_val.T : {}, (predictions : {} - y : {}).T\n".format(self.standardized_val.shape, predictions.shape, y.shape))
 		return np.dot(x.T, (predictions - y)) / self.m
 
 	def standardize(self, data):
-		# print(data.T[1:])
-		# print(data.T[1:].T.mean())
-		# print(np.array([data.T[1:].T.mean()]).T)
-		# print(data.T[1:].T.std())
-		# print(self.standardized_val.T[1:].shape)
 		self.standardized_val.T[1:] = np.array((data.T[1:] - np.array([data.T[1:].T.mean()]).T) / np.array([data.T[1:].T.std()]).T)
-		# print(self.standardized_val.T[1:])
 
+	def calc_accuracy(self, x, y):
+		check = self.predictions(x)
+		check[check >= 0.5] = 1
+		check[check != 1] = 0
+		diff = check == y
+		diff[diff == True] = 1
+		diff[diff == False] = 0
+		return (len(y) - np.count_nonzero(diff == 0)) / len(y) * 100
 
-	def destandardize(self, data, X):
-		predictions = self.estimatePrice(X)[0] * np.std(data.price) + np.mean(data.price)
-		self.theta[0][1] = (predictions[self.m - 1] - predictions[0]) / (data.km[self.m - 1] - data.km[0])
-		self.theta[0][0] = predictions[0] - data.km[0] * self.theta[0][1]
+	def print_verbose(self, ac, data, first_col, second_col):
+		vs = f"{data.columns[first_col + 1]:29} vs {data.columns[second_col + 1]:>29}"
+		if ac >= args.accuracy:
+			print(f"{vs:64}\033[36m{ac:.2f}\t\033[32mGOOD\033[0m")
+		else: 
+			print(f"{vs:64}\033[36m{ac:.2f}\t\033[31mBAD\033[0m")
 
 	def training(self, data, args):
 		all_thetas = []
 		# self.standardize(data)
 		print("Training with {} iterations and {} in minimal accuracy".format(self.iterations, args.accuracy))
 		houses = pd.Series(data["Hogwarts House"]).unique()
+		row_list = [["House", "Class_1", "Class_2", "Theta_0", "Theta_1", "Theta_2"]]
 		for house_index in range(len(houses)):
 			y = data["Hogwarts House"] == houses[house_index]
 			y = np.array([y.astype(np.int)]).T
-			print(y)
-			# print(self.standardized_val.shape)
 			if args.verbose is True:
 				print("\n\t\t\t\033[33m", houses[house_index], "\033[0m\n")
 			for first_col in range(self.standardized_val.shape[1] - 1):
@@ -77,43 +69,13 @@ class LogisticRegression():
 					x = np.array([self.standardized_val.T[first_col], self.standardized_val.T[second_col]], dtype=np.float64).T
 					x = np.insert(x, 0, 1, axis=1)
 					for _ in range(self.iterations):
-				# print(self.cost_gradient(y).shape)
 						self.theta = self.theta - (1 / self.m) * self.learningRate * self.cost_gradient(x, y).T
-					check = self.predictions(x)
-					# print(print(len(y)))
-					check[check >= 0.5] = 1
-					check[check != 1] = 0
-					# print(check.shape)
-					# print(y.shape)
-					diff = check == y
-					diff[diff == True] = 1
-					diff[diff == False] = 0
-					# print(diff)
-					ac = (len(y) - np.count_nonzero(diff==0)) / len(y) * 100
-					# print(len(y))
-					# print(len(diff))
-					# print(ac)
-					# print(data.columns[first_col + 1], " vs ", data.columns[second_col + 1])
+					ac = self.calc_accuracy(x, y)
 					if args.verbose is True:
-						vs = f"{data.columns[first_col + 1]:29} vs {data.columns[second_col + 1]:>29}"
-						if ac >= args.accuracy:
-							print(f"{vs:64}\033[36m{ac:.2f}\t\033[32mGOOD\033[0m")
-						else: 
-							print(f"{vs:64}\033[36m{ac:.2f}\t\033[31mBAD\033[0m")
-			# exit()
-						# print(self.theta)
-				# self.cost_history.append(self.cost(y.T))
-			# print(self.cost_history)
-			# print(self.theta)
-			# print(self.standardized_val[0])
-			print(houses[house_index])
-			# print(self.theta)
-			# print(self.predictions(self.standardized_val))
-			all_thetas.append(self.theta)
-		newFile = open("theta.py", "w+")
-		print(all_thetas)
-		newFile.write(f"{houses[0]} = {all_thetas[0].tolist()}\n{houses[1]} = {all_thetas[1].tolist()}\n{houses[2]} = {all_thetas[2].tolist()}\n{houses[3]} = {all_thetas[3].tolist()}\n")
-		newFile.close()
+						self.print_verbose(ac, data, first_col, second_col)
+					if ac >= args.accuracy:
+						row_list.append([houses[house_index], data.columns[first_col + 1], data.columns[second_col + 1], self.theta[0][0], self.theta[0][1], self.theta[0][2]])
+		write_CSV("training_result.csv", row_list)
 		print("End of training")
 
 
@@ -129,21 +91,3 @@ if (__name__ == '__main__'):
 	data = loader.load(args.file).drop(columns=["Index", "First Name", "Last Name", "Birthday", "Best Hand"]).dropna()
 	trainer = LogisticRegression(data, args)
 	trainer.training(data, args)
-
-	plt.title("Training Result")
-	plt.ylabel('price')
-	plt.xlabel('km')
-	values = np.append(np.ones((1, len(data.km))), np.array([data.km]), axis=0)
-	plt.plot(data.km, trainer.predictions(values)[0], color='red')
-	plt.scatter(data.km, data.price)
-	plt.show()
-	plt.title("Mean Square Error evolution")
-	plt.ylabel('MSE value')
-	plt.xlabel('Iterations')
-	plt.plot(trainer.cost_history)
-	plt.show()
-	# newFile = open("theta.py", "w+")
-	# print()
-	# newFile.write("theta0 = {}\ntheta1 = {}\n".format(trainer.theta[0][0], trainer.theta[0][1]))
-	# newFile.close()
-#https://utkuufuk.com/2018/06/03/one-vs-all-classification/

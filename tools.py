@@ -1,10 +1,6 @@
-import matplotlib.pyplot as plt
-import pandas as pd
-import numpy as np
-import math
-import sys
-from loader import FileLoader
-from describe import Describe
+import csv
 
-def sigmoid(z):
-    return 1 / (1 + np.exp(-z))
+def write_CSV(name, data):
+	with open(name, "w", newline="") as file:
+		writer = csv.writer(file)
+		writer.writerows(data)
