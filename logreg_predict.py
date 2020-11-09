@@ -1,39 +1,55 @@
 import argparse
 import csv
 import numpy as np
+import pandas as pd
 from loader import FileLoader
 from logreg_train import LogisticRegression
-from theta import Ravenclaw, Slytherin, Gryffindor, Hufflepuff
 from tools import write_CSV
 
 
-def estimatePrice(trainer, thetha, value):
-	return trainer.sigmoid(np.dot(thetha, value.T))
-
+def estimation(trainer, theta, value, data):
+	sum = np.zeros((1, len(value)))
+	div = np.ones((1, len(value))) * len(theta)
+	for i in theta.index:
+		print(theta["Class_1"][i])
+		print(theta["Class_2"][i])
+		x = np.array([value.T[data.columns.get_loc(theta["Class_1"][i])], value.T[data.columns.get_loc(theta["Class_2"][i])]], dtype=np.float64).T
+		x = np.insert(x, 0, 1, axis=1)
+		trainer.theta = np.array([[theta["Theta_0"][i], theta["Theta_1"][i], theta["Theta_2"][i]]])
+		predictions = trainer.predictions(x).T
+		mask = np.isnan(predictions)
+		div -= (mask * 1)
+		predictions[mask] = 0
+		sum += predictions
+		print("----------------------------------------")
+		print("{}/{} :\nClass_1 = {} -> i = {}\tClass_2 = {} -> i = {}".format(i, len(theta) - 1, theta['Class_1'][i], data.columns.get_loc(theta["Class_1"][i]), theta["Class_2"][i], data.columns.get_loc(theta["Class_2"][i])))
+	print("----------------------------------------")
+	print(sum / div)
+	print(sum.shape)
+	return sum / div
 
 if (__name__ == '__main__'):
 	parser = argparse.ArgumentParser(description="Price Estimation")
-	parser.add_argument("file", help="test file")
+	parser.add_argument("theta_file", help="theta file")
+	parser.add_argument("data_file", help="data file")
 	args = parser.parse_args()
 	loader = FileLoader()
-	to_return = loader.load(args.file).dropna()
-	data = loader.load(args.file).drop(columns=["Index", "Hogwarts House", "First Name", "Last Name", "Birthday", "Best Hand"]).dropna()
-	print(data)
-	trainer = LogisticRegression(data, 100, 0.1)
-	trainer.standardized_val.T[1:] = (data.T - np.array([data.mean()]).T) / np.array([data.std()]).T
+	thetas = loader.load(args.theta_file)
+	data = loader.load(args.data_file).drop(columns=["Index", "First Name", "Last Name", "Birthday", "Best Hand"])
+	trainer = LogisticRegression(data)
+	data = data.drop(columns=["Hogwarts House"])
 	houses = {}
-	houses["Ravenclaw"] = estimatePrice(trainer, Ravenclaw, trainer.standardized_val)[0]
-	houses["Slytherin"] = estimatePrice(trainer, Slytherin, trainer.standardized_val)[0]
-	houses["Gryffindor"] =  estimatePrice(trainer, Gryffindor, trainer.standardized_val)[0]
-	houses["Hufflepuff"] =  estimatePrice(trainer, Hufflepuff, trainer.standardized_val)[0]
+	houses["Ravenclaw"] = estimation(trainer, thetas[thetas["House"] == "Ravenclaw"], trainer.standardized_val, data)[0]
+	houses["Slytherin"] = estimation(trainer, thetas[thetas["House"] == "Slytherin"], trainer.standardized_val, data)[0]
+	houses["Gryffindor"] = estimation(trainer, thetas[thetas["House"] == "Gryffindor"], trainer.standardized_val, data)[0]
+	houses["Hufflepuff"] = estimation(trainer, thetas[thetas["House"] == "Hufflepuff"], trainer.standardized_val, data)[0]
 	newCSV = [["Index", "Hogwarts House"]]
 	for i in range(data.shape[0]):
-		best = houses["Hufflepuff"][i]
-		best_house = "Hufflepuff"
+		best = -1
+		best_house = ""
 		for house in houses.keys():
 			if (houses[house][i] > best):
 				best = houses[house][i]
 				best_house = house
 		newCSV.append([i, best_house])
-	print(newCSV)
 	write_CSV("houses.csv", newCSV)

@@ -9,13 +9,12 @@ from tools import write_CSV
 
 class LogisticRegression():
 
-	def __init__(self, data, args):
+	def __init__(self, data, learningRate=0.1, iterations=400):
 		self.theta = np.zeros((1, 3))
-		self.learningRate = args.learningRate
+		self.learningRate = learningRate
 		self.m = data.shape[0]
-		self.iterations = args.iterations
+		self.iterations = iterations
 		self.standardized_val = np.array((data.T[1:] - np.array([data.T[1:].T.mean()]).T) / np.array([data.T[1:].T.std()]).T).T
-		self.dict = []
 
 	def sigmoid(self, z):
 		return 1 / (1 + np.exp(-z))
@@ -48,13 +47,11 @@ class LogisticRegression():
 	def print_verbose(self, ac, data, first_col, second_col):
 		vs = f"{data.columns[first_col + 1]:29} vs {data.columns[second_col + 1]:>29}"
 		if ac >= args.accuracy:
-			print(f"{vs:64}\033[36m{ac:.2f}\t\033[32mGOOD\033[0m")
+			print(f"{vs:66}\033[36m{ac:.2f}\033[32m{'YES':^15s}\033[0m")
 		else: 
-			print(f"{vs:64}\033[36m{ac:.2f}\t\033[31mBAD\033[0m")
+			print(f"{vs:66}\033[36m{ac:.2f}\033[31m{'NO':^15s}\033[0m")
 
 	def training(self, data, args):
-		all_thetas = []
-		# self.standardize(data)
 		print("Training with {} iterations and {} in minimal accuracy".format(self.iterations, args.accuracy))
 		houses = pd.Series(data["Hogwarts House"]).unique()
 		row_list = [["House", "Class_1", "Class_2", "Theta_0", "Theta_1", "Theta_2"]]
@@ -62,7 +59,8 @@ class LogisticRegression():
 			y = data["Hogwarts House"] == houses[house_index]
 			y = np.array([y.astype(np.int)]).T
 			if args.verbose is True:
-				print("\n\t\t\t\033[33m", houses[house_index], "\033[0m\n")
+				print(f"\n\033[33m{houses[house_index]:^87s}\033[0m\n")
+				print(f"{'Class n°1':^30s}  {'Class n°2':^30s}   {'Accuracy':^5s}{f'Ac >= {str(args.accuracy)}':^15s}")
 			for first_col in range(self.standardized_val.shape[1] - 1):
 				for second_col in range(first_col + 1, self.standardized_val.shape[1]):
 					self.theta = np.zeros((1, 3))
@@ -89,5 +87,5 @@ if (__name__ == '__main__'):
 	args = parser.parse_args()
 	loader = FileLoader()
 	data = loader.load(args.file).drop(columns=["Index", "First Name", "Last Name", "Birthday", "Best Hand"]).dropna()
-	trainer = LogisticRegression(data, args)
+	trainer = LogisticRegression(data, args.learningRate, args.iterations)
 	trainer.training(data, args)
