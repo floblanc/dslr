@@ -73,13 +73,30 @@ class LogisticRegression():
 		write_CSV("training_result.csv", row_list)
 		print("End of training")
 
+def __range_it(value_string):
+	value = int(value_string)
+	if value not in range(1, 10001):
+		raise argparse.ArgumentTypeError(f"{value} is out of range, choose in [1-10000]")
+	return value
+
+def __range_lr(value_string):
+	value = float(value_string)
+	if value not in np.arange(0.001, 1, 0.001):
+		raise argparse.ArgumentTypeError(f"{value} is out of range, choose in [0.001-1] with an accuracy of 0.001")
+	return value
+
+def __range_ac(value_string):
+	value = float(value_string)
+	if value not in np.arange(0, 100, 0.01):
+		raise argparse.ArgumentTypeError(f"{value} is out of range, choose in [0-100] with an accuracy of 0.01")
+	return value
 
 if (__name__ == '__main__'):
 	parser = argparse.ArgumentParser(description="Training Linear Regression")
 	parser.add_argument("file", help="data_set")
-	parser.add_argument("-i", "--iterations", help="nombre d'interations", metavar="n", type=int, choices=range(1, 10001), default=400)
-	parser.add_argument("-l", "--learningRate", help="learning rate", metavar="l", type=float, choices=np.arange(0.001, 1, 0.001), default=0.1)
-	parser.add_argument("-a", "--accuracy", help="minimal accuracy", metavar="a", type=float, choices=np.arange(0, 100, 0.01), default=90.0)
+	parser.add_argument("-i", "--iterations", help="nombre d'interations", metavar="n", type=__range_it, choices=range(1, 10001), default=400)
+	parser.add_argument("-l", "--learningRate", help="learning rate", metavar="l", type=__range_lr, choices=np.arange(0.001, 1, 0.001), default=0.1)
+	parser.add_argument("-a", "--accuracy", help="minimal accuracy", metavar="a", type=__range_ac, choices=np.arange(0, 100, 0.01), default=90.0)
 	parser.add_argument("-v", "--verbose", help="verbose", action="store_true")
 	args = parser.parse_args()
 	loader = FileLoader()

@@ -11,8 +11,6 @@ def estimation(trainer, theta, value, data):
 	sum = np.zeros((1, len(value)))
 	div = np.ones((1, len(value))) * len(theta)
 	for i in theta.index:
-		print(theta["Class_1"][i])
-		print(theta["Class_2"][i])
 		x = np.array([value.T[data.columns.get_loc(theta["Class_1"][i])], value.T[data.columns.get_loc(theta["Class_2"][i])]], dtype=np.float64).T
 		x = np.insert(x, 0, 1, axis=1)
 		trainer.theta = np.array([[theta["Theta_0"][i], theta["Theta_1"][i], theta["Theta_2"][i]]])
@@ -21,8 +19,8 @@ def estimation(trainer, theta, value, data):
 		div -= (mask * 1)
 		predictions[mask] = 0
 		sum += predictions
-		print("----------------------------------------")
-		print("{}/{} :\nClass_1 = {} -> i = {}\tClass_2 = {} -> i = {}".format(i, len(theta) - 1, theta['Class_1'][i], data.columns.get_loc(theta["Class_1"][i]), theta["Class_2"][i], data.columns.get_loc(theta["Class_2"][i])))
+		print("----------------------------------------\n")
+		print("{}/{} :\nClass_1 = {} -> i = {}\tClass_2 = {} -> i = {}".format(i - theta.index[0], len(theta) - 1, theta['Class_1'][i], data.columns.get_loc(theta["Class_1"][i]), theta["Class_2"][i], data.columns.get_loc(theta["Class_2"][i])))
 	print("----------------------------------------")
 	print(sum / div)
 	print(sum.shape)
