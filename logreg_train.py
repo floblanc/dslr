@@ -30,10 +30,7 @@ class LogisticRegression():
 
 	def cost_gradient(self, x, y):
 		predictions = self.predictions(x)
-		return np.dot(x.T, (predictions - y)) / self.m
-
-	def standardize(self, data):
-		self.standardized_val.T[1:] = np.array((data.T[1:] - np.array([data.T[1:].T.mean()]).T) / np.array([data.T[1:].T.std()]).T)
+		return np.dot(x.T, (predictions - y))
 
 	def calc_accuracy(self, x, y):
 		check = self.predictions(x)
