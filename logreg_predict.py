@@ -19,17 +19,17 @@ def estimation(trainer, theta, value, data):
 		div -= (mask * 1)
 		predictions[mask] = 0
 		sum += predictions
-		print("----------------------------------------\n")
-		print("{}/{} :\nClass_1 = {} -> i = {}\tClass_2 = {} -> i = {}".format(i - theta.index[0], len(theta) - 1, theta['Class_1'][i], data.columns.get_loc(theta["Class_1"][i]), theta["Class_2"][i], data.columns.get_loc(theta["Class_2"][i])))
-	print("----------------------------------------")
-	print(sum / div)
-	print(sum.shape)
+		if args.verbose is True:
+			vs = f"\033[36m{theta['Class_1'][i]:29}\033[0m vs \033[36m{theta['Class_2'][i]:>29}"
+			print(f"\033[0m{i - theta.index[0]} / {len(theta) - 1}\n{vs:66}")
+			print("\033[0m--------------------------------------------------------------\n")
 	return sum / div
 
 if (__name__ == '__main__'):
 	parser = argparse.ArgumentParser(description="Price Estimation")
 	parser.add_argument("theta_file", help="theta file")
 	parser.add_argument("data_file", help="data file")
+	parser.add_argument("-v", "--verbose", help="verbose", action="store_true")
 	args = parser.parse_args()
 	loader = FileLoader()
 	thetas = loader.load(args.theta_file)
@@ -37,17 +37,30 @@ if (__name__ == '__main__'):
 	trainer = LogisticRegression(data)
 	data = data.drop(columns=["Hogwarts House"])
 	houses = {}
-	houses["Ravenclaw"] = estimation(trainer, thetas[thetas["House"] == "Ravenclaw"], trainer.standardized_val, data)[0]
-	houses["Slytherin"] = estimation(trainer, thetas[thetas["House"] == "Slytherin"], trainer.standardized_val, data)[0]
-	houses["Gryffindor"] = estimation(trainer, thetas[thetas["House"] == "Gryffindor"], trainer.standardized_val, data)[0]
-	houses["Hufflepuff"] = estimation(trainer, thetas[thetas["House"] == "Hufflepuff"], trainer.standardized_val, data)[0]
+	for elem in ["Ravenclaw", "Slytherin", "Gryffindor", "Hufflepuff"]:
+		if args.verbose is True:
+			print(f"\033[32m\n\n{elem:^62s}")
+		houses[elem] = estimation(trainer, thetas[thetas["House"] == elem], trainer.standardized_val, data)[0]
 	newCSV = [["Index", "Hogwarts House"]]
+	if args.verbose is True:
+		print("\033[32m\n\nSelection of de best house")
+		print(f"\033[36mindex - {'Ravenclaw':<15s}| {'Slytherin':<15s}| {'Gryffindor':<15s}| {'Hufflepuff':<15s}| result\033[0m")
 	for i in range(data.shape[0]):
 		best = -1
 		best_house = ""
+		if args.verbose is True:
+			print(f"\033[36m{i:<5}\033[0m -", end="")
 		for house in houses.keys():
 			if (houses[house][i] > best):
 				best = houses[house][i]
 				best_house = house
+		if args.verbose is True:
+			for house in houses.keys():
+				if (houses[house][i] == best):
+					print(f" \033[32m{houses[house][i]:.12f} \033[0m|", end="")
+				else:
+					print(f" {houses[house][i]:.12f} |", end="")
+		
+			print(" " + best_house)
 		newCSV.append([i, best_house])
 	write_CSV("houses.csv", newCSV)
