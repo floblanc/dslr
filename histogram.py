@@ -15,7 +15,6 @@ class Histogram():
 					goodOne = i
 			goodOne = data.columns.to_list().index(desc.columns[goodOne])
 			npData = data.to_numpy()
-			# for goodOne in range (6, len(data.columns)):
 			plt.title(data.columns[goodOne])
 			housesTotal = {"Gryffindor" : [], "Ravenclaw" : [], "Slytherin" : [], "Hufflepuff" : []}
 			maxi = npData[0][goodOne]

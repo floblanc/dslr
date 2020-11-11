@@ -22,12 +22,6 @@ class LogisticRegression():
 	def predictions(self, value):
 		return self.sigmoid(np.dot(value, self.theta.T))
 
-	def cost(self, y):
-		predictions = self.predictions(self.standardized_val)
-		predictions[predictions == 1] = 0.999  # log(1)=0 causes error in division
-		error = -y * np.log(predictions) - (1 - y) * np.log(1 - predictions)
-		return sum(error) / self.m
-
 	def cost_gradient(self, x, y):
 		predictions = self.predictions(x)
 		return np.dot(x.T, (predictions - y))

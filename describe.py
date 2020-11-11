@@ -6,7 +6,7 @@ import sys
 
 class Describe():
 	def findX(self, p, n, c):
-		return (p*(n + 1 - 2*c) + c)
+		return (p*(n + 1 - 2 * c) + c)
 
 	def findValue(self, values, x):
 		index = int(x // 1) - 1

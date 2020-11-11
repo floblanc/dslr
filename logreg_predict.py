@@ -60,7 +60,6 @@ if (__name__ == '__main__'):
 					print(f" \033[32m{houses[house][i]:.12f} \033[0m|", end="")
 				else:
 					print(f" {houses[house][i]:.12f} |", end="")
-		
 			print(" " + best_house)
 		newCSV.append([i, best_house])
 	write_CSV("houses.csv", newCSV)
