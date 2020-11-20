@@ -5,7 +5,7 @@ import math
 import sys
 
 class Describe():
-	def findX(self, p, n, c):
+	def findX(self, p, n, c=1):
 		return (p*(n + 1 - 2 * c) + c)
 
 	def findValue(self, values, x):
