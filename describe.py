@@ -1,19 +1,20 @@
+import argparse
 from loader import FileLoader
-import pandas as pd
-import numpy as np
 import math
+import numpy as np
+import pandas as pd
 import sys
 
 class Describe():
-	def findX(self, p, n, c=1):
-		return (p*(n + 1 - 2 * c) + c)
+	def findX(self, p, n, c):
+		return (p * (n + 1 - 2 * c) + c)
 
 	def findValue(self, values, x):
 		index = int(x // 1) - 1
 		upperIndex = index + 1
 		return (values[index] + (x % 1) * (values[upperIndex] - values[index]))
 
-	def describe(self, data):
+	def describe(self, data, c=1):
 		try :
 			tmp = {}
 			for feature in range (6, len(data.columns)):
@@ -30,11 +31,11 @@ class Describe():
 					std += (tab[i] - mean)**2
 				std = (std / length)**0.5
 				mini = tab[0]
-				first_quart_pos = self.findX(0.25, length, 1)
+				first_quart_pos = self.findX(0.25, length, c)
 				first_quart = self.findValue(tab, first_quart_pos)
-				half_pos = self.findX(0.5, length, 1)
+				half_pos = self.findX(0.5, length, c)
 				half = self.findValue(tab, half_pos)
-				last_quart_pos = self.findX(0.5, length, 1)
+				last_quart_pos = self.findX(0.5, length, c)
 				last_quart = self.findValue(tab, last_quart_pos)
 				maxi = tab[length - 1]
 				tmp[data.columns[feature]] = [length, mean, std, mini, first_quart, half, last_quart, maxi]
@@ -45,18 +46,15 @@ class Describe():
 			exit()
 
 if (__name__ == '__main__'):
-	file = "datasets/dataset_train.csv"
+	parser = argparse.ArgumentParser(description="Training Linear Regression")
+	parser.add_argument("file", help="data_set")
+	parser.add_argument("-c", "--constant", help="C variants", metavar="c", type=float, choices=np.arange(0, 1.5, 0.5), default=1.0)
+	args = parser.parse_args()
 	result = 0
-	if (len(sys.argv) < 3):
-		if (len(sys.argv) == 2):
-			file = sys.argv[1]
-		loader = FileLoader() 
-		path = sys.path[0]+ '/' + file
-		data = loader.load(path)
-		describer = Describe()
-		data = data.dropna()
-		result = describer.describe(data)
-		print(result.to_string())
-	else:
-		print("There is too much arguments.")
+	loader = FileLoader() 
+	data = loader.load(args.file)
+	describer = Describe()
+	data = data.dropna()
+	result = describer.describe(data, args.constant)
+	print(result.to_string())
 # https://en.wikipedia.org/wiki/Percentile
